@@ -306,3 +306,9 @@ Flag_OutputOIIILF          : 1      # Enable OIIILF calculation and output (0=di
 OIIILF_MinLogL             : 38.0   # Minimum log10(LOIII [erg/s]) for OIIILF bins
 OIIILF_MaxLogL             : 45.0   # Maximum log10(LOIII [erg/s]) for OIIILF bins
 OIIILF_BinsPerDex          : 2      # Number of OIIILF bins per dex
+
+## Quasars x-rays Luminosity Function (XLF) - uses log10(LX [erg/s])
+Flag_OutputXrayLF          : 1              
+XrayLF_MinLogL             : 40.0 
+XrayLF_MaxLogL             : 48.0
+XrayLF_BinsPerDex          : 2

@@ -3,6 +3,11 @@
 #include "parse_paramfile.h"
 #include <string.h>
 
+#ifdef PARAM_MAX_ENTRIES
+#undef PARAM_MAX_ENTRIES
+#endif
+#define PARAM_MAX_ENTRIES 210
+
 static void check_problem_params(run_params_t* run_params)
 {
   if (run_params->NSteps != 1) {
@@ -1319,6 +1324,26 @@ void read_parameter_file(char* fname, int mode)
 
       strncpy(params_tag[n_param], "OIIILF_BinsPerDex", tag_length);
       params_addr[n_param] = &(run_params->OIIILF_BinsPerDex);
+      required_tag[n_param] = 1;
+      params_type[n_param++] = PARAM_TYPE_INT;
+
+      strncpy(params_tag[n_param], "Flag_OutputXrayLF", tag_length);
+      params_addr[n_param] = &(run_params->Flag_OutputXrayLF);
+      required_tag[n_param] = 1;
+      params_type[n_param++] = PARAM_TYPE_INT;
+
+      strncpy(params_tag[n_param], "XrayLF_MinLogL", tag_length);
+      params_addr[n_param] = &(run_params->XrayLF_MinLogL);
+      required_tag[n_param] = 1;
+      params_type[n_param++] = PARAM_TYPE_DOUBLE;
+
+      strncpy(params_tag[n_param], "XrayLF_MaxLogL", tag_length);
+      params_addr[n_param] = &(run_params->XrayLF_MaxLogL);
+      required_tag[n_param] = 1;
+      params_type[n_param++] = PARAM_TYPE_DOUBLE;
+
+      strncpy(params_tag[n_param], "XrayLF_BinsPerDex", tag_length);
+      params_addr[n_param] = &(run_params->XrayLF_BinsPerDex);
       required_tag[n_param] = 1;
       params_type[n_param++] = PARAM_TYPE_INT;
 
