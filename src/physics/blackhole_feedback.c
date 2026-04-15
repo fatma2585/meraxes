@@ -293,7 +293,7 @@ void calculate_BHemissivity(double BlackHoleMass, double accreted_mass,
   double LX_erg_s = LX_1e10Lsun * 1e10 * 3.828e33;
   *xray_emissivity = LX_erg_s
                      * (*accretion_time) * run_globals.units.UnitTime_in_s
-                     / run_globals.params.Hubble_h / 1e60;
+                     / run_globals.params.Hubble_h;
   /* Note: obs_fraction (from NH distribution + transmission) is
    * multiplied in previous_merger_driven_BH_growth() after obscuration
    * is applied, replacing the fixed quasar_fobs opening angle. */
