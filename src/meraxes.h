@@ -216,6 +216,7 @@ typedef struct physics_params_t
   int Flag_FixVmaxOnInfall;
   int Flag_ReheatToFOFGroupTemp;
   int Flag_FescCGMSuppression;
+  int Flag_AGN_XRAY;
 } physics_params_t;
 
 enum tree_ids
