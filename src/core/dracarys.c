@@ -59,6 +59,7 @@ void dracarys()
   trees_info_t* snapshot_trees_info = run_globals.SnapshotTreesInfo;
   double* LTTime = run_globals.LTTime;
   int NOutputSnaps = run_globals.NOutputSnaps;
+  int flag_output;
 
   // Find what the last requested output snapshot is
   for (int ii = 0; ii < NOutputSnaps; ii++)
@@ -317,6 +318,12 @@ void dracarys()
         if (run_globals.params.Flag_IncludeLymanWerner)
           assign_Mvir_crit_to_galaxies(ngals_in_slabs, 2);
 #endif
+        if (run_globals.params.Flag_IncludeRecombinations){
+          assign_Mvir_crit_to_galaxies(ngals_in_slabs, 3);
+          // Compute tau_cgm for CGM suppression of fesc
+          if (run_globals.params.physics.Flag_FescCGMSuppression)
+            assign_Mvir_crit_to_galaxies(ngals_in_slabs, 4);
+        }
       }
     }
 
@@ -428,11 +435,18 @@ void dracarys()
 #endif
 #endif
 
+    flag_output = 0;
     // Write the results if this is a requested snapshot
-    if (!run_globals.params.FlagMCMC)
+    if (!run_globals.params.FlagMCMC){
       for (int i_out = 0; i_out < NOutputSnaps; i_out++)
-        if (snapshot == run_globals.ListOutputSnaps[i_out])
+        if (snapshot == run_globals.ListOutputSnaps[i_out]){
           write_snapshot(nout_gals, i_out, &last_nout_gals);
+          flag_output = 1;
+        }
+
+      if ((!flag_output) && (run_globals.params.Flag_PatchyReion) && check_if_reionization_ongoing(snapshot) && (run_globals.mpi_rank == 0))
+       save_reion_output_attributes(snapshot);
+    }
 
     // Update the LastIdentSnap values for non-ghosts
     gal = run_globals.FirstGal;
@@ -481,6 +495,11 @@ void dracarys()
   }
   run_globals.FirstGal = NULL;
   mlog("...done", MLOG_CLOSE);
+
+  // Close the per-rank galaxy HDF5 file (was kept open across all snapshots
+  // to avoid HDF5 1.10.x open-close fragmentation; see prep_hdf5_file()).
+  if (!run_globals.params.FlagMCMC)
+    close_hdf5_file();
 
   // Create the master file
   MPI_Barrier(run_globals.mpi_comm);
