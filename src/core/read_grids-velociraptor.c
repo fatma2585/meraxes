@@ -75,19 +75,27 @@ static int read_swift(const enum grid_prop property, const int snapshot, float* 
   // read the highest res grids available and down sample them.
   char dirname[STRLEN - 20];
   char fname[STRLEN];
+  int use_resampled_file = 0;
   sprintf(dirname, "%s/grids/resampled/N%d", params->SimulationDir, run_globals.params.ReionGridDim);
-  DIR* dir = opendir(dirname);
-  bool use_resampled_file = (dir != NULL);
+
+  // Decide on rank 0 and broadcast: H5Fopen is collective and grid_dim comes from rank 0, so ranks must not probe the filesystem independently.
+  if (run_globals.mpi_rank == 0) {
+    sprintf(fname, "%s/snap_%04d.hdf5", dirname, snapshot);
+    use_resampled_file = (access(fname, R_OK) == 0);
+  }
+  MPI_Bcast(&use_resampled_file, 1, MPI_INT, 0, run_globals.mpi_comm);
+
   if (use_resampled_file)
     sprintf(fname, "%s/snap_%04d.hdf5", dirname, snapshot);
   else
     sprintf(fname, "%s/grids/snap_%04d.hdf5", params->SimulationDir, snapshot);
 
-  if (dir)
-    closedir(dir);
-
   hid_t file_id = H5Fopen(fname, H5F_ACC_RDONLY, plist_id);
   H5Pclose(plist_id);
+  if (file_id < 0) {
+    mlog_error("Failed to open grid file %s", fname);
+    ABORT(EXIT_FAILURE);
+  }
   herr_t status;
 
   int grid_dim = 0;
@@ -170,12 +178,20 @@ static int read_swift(const enum grid_prop property, const int snapshot, float* 
 
   // select a hyperslab in the filespace
   hid_t fspace_id = H5Screate_simple(3, (hsize_t[3]){ grid_dim, grid_dim, grid_dim }, NULL);
-  H5Sselect_hyperslab(fspace_id,
-                      H5S_SELECT_SET,
-                      (hsize_t[3]){ slab_ix_start_file, 0, 0 },
-                      NULL,
-                      (hsize_t[3]){ slab_nix_file, grid_dim, grid_dim },
-                      NULL);
+  status = H5Sselect_hyperslab(fspace_id,
+                               H5S_SELECT_SET,
+                               (hsize_t[3]){ slab_ix_start_file, 0, 0 },
+                               NULL,
+                               (hsize_t[3]){ slab_nix_file, grid_dim, grid_dim },
+                               NULL);
+  if (status < 0) {
+    mlog_error("Failed to select hyperslab [%td:%td] of %s in %s",
+               slab_ix_start_file,
+               slab_ix_start_file + slab_nix_file,
+               dset_name,
+               fname);
+    ABORT(EXIT_FAILURE);
+  }
 
   // create the memspace
   hid_t memspace_id = H5Screate_simple(1, (hsize_t[1]){ slab_nix_file * grid_dim * grid_dim }, NULL);
@@ -185,7 +201,12 @@ static int read_swift(const enum grid_prop property, const int snapshot, float* 
   plist_id = H5Pcreate(H5P_DATASET_XFER);
   H5Pset_dxpl_mpio(plist_id, H5FD_MPIO_COLLECTIVE);
 
-  H5Dread(dset_id, H5T_NATIVE_FLOAT, memspace_id, fspace_id, plist_id, (float*)slab_file);
+  // Don't carry on with a half-read slab: everything downstream would read uninitialised memory.
+  status = H5Dread(dset_id, H5T_NATIVE_FLOAT, memspace_id, fspace_id, plist_id, (float*)slab_file);
+  if (status < 0) {
+    mlog_error("Failed to read %s from %s (grid_dim = %d)", dset_name, fname, grid_dim);
+    ABORT(EXIT_FAILURE);
+  }
 
   H5Pclose(plist_id);
   H5Dclose(dset_id);

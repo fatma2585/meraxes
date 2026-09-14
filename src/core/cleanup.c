@@ -86,6 +86,20 @@ void cleanup()
   free(stored_XrayEmissivity_hard);
   free(stored_XrayEmissivity_soft);
   free(stored_XrayEmissivity_HMXB);
+#if USE_MINI_HALOS
+  if (run_globals.params.Flag_IncludeLymanWerner) {
+    free(sum_lyn_LW);
+    free(sum_lyn_LW_III);
+    free(sum_lyn_LW_AGN);
+    free(LW_spectral_stellar);
+    free(LW_spectral_III);
+    free(LW_spectral_AGN);
+    free(LW_zpp);
+    free(LW_emissivity_stellar);
+    free(LW_emissivity_III);
+    free(LW_emissivity_AGN);
+  }
+#endif
 
   if (run_globals.gpu != NULL)
     free(run_globals.gpu);

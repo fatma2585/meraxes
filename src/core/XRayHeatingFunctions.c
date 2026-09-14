@@ -50,11 +50,7 @@ int init_heat()
   sum_lyn = calloc(TsNumFilterSteps, sizeof(double));
 #if USE_MINI_HALOS
   sum_lyn_III = calloc(TsNumFilterSteps, sizeof(double));
-  if (run_globals.params.Flag_IncludeLymanWerner) {
-    sum_lyn_LW = calloc(TsNumFilterSteps, sizeof(double));
-    sum_lyn_LW_III = calloc(TsNumFilterSteps, sizeof(double));
-    sum_lyn_LW_AGN = calloc(TsNumFilterSteps, sizeof(double));
-  }
+  // sum_lyn_LW* / LW_spectral_* / LW_zpp live in init.c and cleanup.c: save_reion_output() reads them after destruct_heat() returns.
 #endif
 
   kappa_10(1.0, 1); // 1 is the flag, allocates memory.
@@ -91,11 +87,7 @@ void destruct_heat()
 
 #if USE_MINI_HALOS
   free(sum_lyn_III);
-  if (run_globals.params.Flag_IncludeLymanWerner) {
-    free(sum_lyn_LW);
-    free(sum_lyn_LW_III);
-    free(sum_lyn_LW_AGN);
-  }
+  // sum_lyn_LW* / LW_spectral_* / LW_zpp are freed in cleanup.c -- see the note in init_heat().
 #endif
 }
 
