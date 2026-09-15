@@ -162,20 +162,7 @@ static void read_snap_list()
     stored_XrayEmissivity_HMXB = calloc((size_t)run_globals.params.SnaplistLength, sizeof(double));
 
 #if USE_MINI_HALOS
-    // Written by save_reion_output() after ComputeTs() returns, so these need run lifetime.
-    if (run_globals.params.Flag_IncludeLymanWerner) {
-      size_t n_filt = (size_t)run_globals.params.TsNumFilterSteps;
-      sum_lyn_LW = calloc(n_filt, sizeof(double));
-      sum_lyn_LW_III = calloc(n_filt, sizeof(double));
-      sum_lyn_LW_AGN = calloc(n_filt, sizeof(double));
-      LW_spectral_stellar = calloc(n_filt * (size_t)LW_NLEV, sizeof(double));
-      LW_spectral_III = calloc(n_filt * (size_t)LW_NLEV, sizeof(double));
-      LW_spectral_AGN = calloc(n_filt * (size_t)LW_NLEV, sizeof(double));
-      LW_zpp = calloc(n_filt, sizeof(double));
-      LW_emissivity_stellar = calloc(n_filt, sizeof(double));
-      LW_emissivity_III = calloc(n_filt, sizeof(double));
-      LW_emissivity_AGN = calloc(n_filt, sizeof(double));
-    }
+    init_LW_diagnostics();
 #endif
   }
 }

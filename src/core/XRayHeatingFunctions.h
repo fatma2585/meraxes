@@ -138,6 +138,10 @@ extern "C"
 
   /* returns the spectral emissity */
   double spectral_emissivity(double nu_norm, int flag, int flag_Pop);
+#if USE_MINI_HALOS
+  void init_LW_diagnostics(void);
+  void free_LW_diagnostics(void);
+#endif
 
   /* Ionization fraction from RECFAST. */
   double xion_RECFAST(float z, int flag);
