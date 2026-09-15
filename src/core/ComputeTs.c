@@ -169,6 +169,8 @@ void _ComputeTs(int snapshot)
   double XAGN_hard[TsNumFilterSteps];
 #if USE_MINI_HALOS
   double AGN_LW[TsNumFilterSteps];
+  double lw_term_stellar, lw_term_III, lw_term_AGN;
+  int i_spec;
 #endif
 
 #if USE_MINI_HALOS
@@ -873,7 +875,7 @@ void _ComputeTs(int snapshot)
         sum_lyn_LW_III[R_ct] = 0;
         sum_lyn_LW_AGN[R_ct] = 0;
         // per-Lyman-level breakdown, so the LW spectral shape is recoverable from the output
-        for (int i_spec = 0; i_spec < LW_NLEV; i_spec++) {
+        for (i_spec = 0; i_spec < LW_NLEV; i_spec++) {
           LW_spectral_stellar[R_ct * LW_NLEV + i_spec] = 0;
           LW_spectral_III[R_ct * LW_NLEV + i_spec] = 0;
           LW_spectral_AGN[R_ct * LW_NLEV + i_spec] = 0;
@@ -896,9 +898,8 @@ void _ComputeTs(int snapshot)
           if (nuprime > nu_n(n_ct + 1))
             continue;
           // photons per stellar baryon
-          double lw_term_stellar = spectral_emissivity(nuprime, 2, 2);
-          double lw_term_III = spectral_emissivity(nuprime, 2, 3);
-          double lw_term_AGN;
+          lw_term_stellar = spectral_emissivity(nuprime, 2, 2);
+          lw_term_III = spectral_emissivity(nuprime, 2, 3);
 
           if (fabs(run_globals.params.physics.SpecIndexUVAGNSoft - 1.0) < REL_TOL) {
             lw_term_AGN = log(nu_n(n_ct + 1) / nuprime); //unitless
@@ -970,7 +971,7 @@ void _ComputeTs(int snapshot)
           sum_lyn_LW[R_ct] = weight * sum_lyn_LW[R_ct - 1];
           sum_lyn_LW_AGN[R_ct] = weight * sum_lyn_LW_AGN[R_ct - 1];
           // weight the per-level breakdown too, so it still sums to sum_lyn_LW* for this shell
-          for (int i_spec = 0; i_spec < LW_NLEV; i_spec++) {
+          for (i_spec = 0; i_spec < LW_NLEV; i_spec++) {
             LW_spectral_stellar[R_ct * LW_NLEV + i_spec] =
               weight * LW_spectral_stellar[(R_ct - 1) * LW_NLEV + i_spec];
             LW_spectral_AGN[R_ct * LW_NLEV + i_spec] =
