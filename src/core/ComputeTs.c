@@ -602,8 +602,8 @@ void _ComputeTs(int snapshot)
                 ((float*)BHUVEmissivity_filtered)[i_padded] = fmaxf(((float*)BHUVEmissivity_filtered)[i_padded], 0.0);
 
                 bh_uv = ((float*)BHUVEmissivity_filtered)[i_padded];
-                SMOOTHED_AGN_UV[i_smoothed_heating] = (double)bh_uv * 1e-11 * SOLAR_LUM / NU_1450 / pixel_volume
-                                                  * pow(units->UnitLength_in_cm, -3.0); // 1e21 erg/s/Hz/cm^3
+                SMOOTHED_AGN_UV[i_smoothed_heating] = (double)bh_uv * 1e10 * SOLAR_LUM / NU_1450 / pixel_volume
+                                                  * pow(units->UnitLength_in_cm, -3.0); // erg/s/Hz/cm^3
               }
 #endif
 
@@ -706,8 +706,8 @@ void _ComputeTs(int snapshot)
                 ((float*)BHUVEmissivity_filtered)[i_padded] = fmaxf(((float*)BHUVEmissivity_filtered)[i_padded], 0.0);
 
                 bh_uv = ((float*)BHUVEmissivity_filtered)[i_padded];
-                SMOOTHED_AGN_UV[i_smoothed_heating] = (double)bh_uv * 1e-11 * SOLAR_LUM / NU_1450 / pixel_volume
-                                                  * pow(units->UnitLength_in_cm, -3.0); // 1e21 erg/s/Hz/cm^3
+                SMOOTHED_AGN_UV[i_smoothed_heating] = (double)bh_uv * 1e10 * SOLAR_LUM / NU_1450 / pixel_volume
+                                                  * pow(units->UnitLength_in_cm, -3.0); // erg/s/Hz/cm^3
               }
 #endif
             }

@@ -1568,9 +1568,14 @@ void evolveInt(float zp,
   deriv[11] = dxheat_dzp_II;
 
   if (run_globals.params.Flag_IncludeLymanWerner) {
-    deriv[8] = (dstarlyLW_dt_GAL + dstarlyLW_dt_III) * NU_LA / ( NUIONIZATION - NU_LW) * PLANCK * 1e21 + dstarlyLW_dt_AGN;
-    deriv[13] = dstarlyLW_dt_GAL * NU_LA / ( NUIONIZATION - NU_LW) * PLANCK * 1e21 + dstarlyLW_dt_AGN;
-    deriv[7] = dstarlyLW_dt_AGN;
+    // Band-average both contributions over the LW band and convert to J_21. The stellar terms
+    // carry PLANCK because sum_lyn_LW* is a photon count; the AGN term is already an energy and
+    // is normalised to NU_1450 rather than NU_LA.
+    deriv[8] = ((dstarlyLW_dt_GAL + dstarlyLW_dt_III) * NU_LA * PLANCK + dstarlyLW_dt_AGN * NU_1450) /
+               (NUIONIZATION - NU_LW) * 1e21;
+    deriv[13] = (dstarlyLW_dt_GAL * NU_LA * PLANCK + dstarlyLW_dt_AGN * NU_1450) /
+                (NUIONIZATION - NU_LW) * 1e21;
+    deriv[7] = dstarlyLW_dt_AGN * NU_1450 / (NUIONIZATION - NU_LW) * 1e21;
   }
 
   deriv[4] = dt_dzp * (dxion_source_dt_GAL + dxion_source_dt_III
