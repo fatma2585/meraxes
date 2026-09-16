@@ -656,6 +656,8 @@ typedef struct reion_grids_t
   double volume_ave_xalpha;
   double volume_ave_Xheat;
   double volume_ave_Xion;
+  double volume_ave_J_alpha_AGN_UV;   /* direct AGN UV continuum Lya pumping */
+  double volume_ave_J_alpha_AGN_Xray; /* Lya from AGN X-ray secondary excitation */
   double volume_ave_Xheat_AGN_soft;
   double volume_ave_Xheat_AGN_hard;
   double volume_ave_TS;

@@ -50,6 +50,7 @@ int init_heat()
   sum_lyn = calloc(TsNumFilterSteps, sizeof(double));
 #if USE_MINI_HALOS
   sum_lyn_III = calloc(TsNumFilterSteps, sizeof(double));
+  sum_lyn_AGN = calloc(TsNumFilterSteps, sizeof(double));
 #endif
 
   kappa_10(1.0, 1); // 1 is the flag, allocates memory.
@@ -86,6 +87,7 @@ void destruct_heat()
 
 #if USE_MINI_HALOS
   free(sum_lyn_III);
+  free(sum_lyn_AGN);
 #endif
 }
 
@@ -1292,6 +1294,7 @@ void evolveInt(float zp,
                const double XAGN_soft[],
                const double XAGN_hard[],
                const double AGN_LW[],
+               const double AGN_UV_Lya[],
                const double freq_int_heat_GAL[],
                const double freq_int_ion_GAL[],
                const double freq_int_lya_GAL[],
@@ -1345,6 +1348,7 @@ void evolveInt(float zp,
   // Do this to differentiate between Pop III and Pop II contribution
   double dxlya_dt_III, dstarlya_dt_III, dstarlyLW_dt_III, dxheat_dt_III, dxion_source_dt_III, zpp_integrand_III;
   double dspec_dzp_II, dxheat_dzp_II;
+  double dstarlya_dt_AGN;
 #endif
 
   double dxheat_dt_AGN_soft      = 0.0;
@@ -1377,6 +1381,7 @@ void evolveInt(float zp,
   dxlya_dt_III = 0;
   dstarlya_dt_III = 0;
   dstarlyLW_dt_III = 0;
+  dstarlya_dt_AGN = 0;
 #endif
   deriv[5] = 0.0;
   deriv[6] = 0.0;
@@ -1422,6 +1427,11 @@ void evolveInt(float zp,
       dxlya_dt_III += dt_dzpp * dzpp * zpp_integrand_III * freq_int_lya_III[zpp_ct];
 
       dstarlya_dt_III += SFR_III[zpp_ct] * pow(1 + zp, 2) * (1 + zpp) * sum_lyn_III[zpp_ct] * dt_dzpp * dzpp;
+
+      // Direct AGN UV continuum Lya pumping. Same structure as the stellar term, but the
+      // source is a UV emissivity rather than an SFR, so sum_lyn_AGN already carries 1/(h nu).
+      if (run_globals.params.physics.Flag_IncludeAGNLyAlpha)
+        dstarlya_dt_AGN += AGN_UV_Lya[zpp_ct] * pow(1 + zp, 2) * (1 + zpp) * sum_lyn_AGN[zpp_ct] * dt_dzpp * dzpp;
 
       if (run_globals.params.Flag_IncludeLymanWerner) {
         dstarlyLW_dt_GAL += SFR_GAL[zpp_ct] * pow(1 + zp, 2) * (1 + zpp) * sum_lyn_LW[zpp_ct] * dt_dzpp * dzpp;
@@ -1469,6 +1479,9 @@ void evolveInt(float zp,
     dxlya_dt_III *= const_zp_prefactor_III * n_b;
 
     dstarlya_dt_III *= Conversion_factor;
+
+    if (run_globals.params.physics.Flag_IncludeAGNLyAlpha)
+      dstarlya_dt_AGN *= Conversion_factor_AGN_LW;
 
     if (run_globals.params.Flag_IncludeLymanWerner) {
       dstarlyLW_dt_GAL *= Conversion_factor;
@@ -1558,6 +1571,16 @@ void evolveInt(float zp,
   deriv[2] = (dxlya_dt_GAL + dxlya_dt_III + dxlya_dt_AGN_soft + dxlya_dt_AGN_hard)
              + (dstarlya_dt_GAL + dstarlya_dt_III);
   deriv[10] = dxlya_dt_GAL + dxlya_dt_AGN_soft + dxlya_dt_AGN_hard + dstarlya_dt_GAL;
+  if (run_globals.params.physics.Flag_IncludeAGNLyAlpha) {
+    deriv[2] += dstarlya_dt_AGN;
+    deriv[10] += dstarlya_dt_AGN;
+  }
+
+  /* Diagnostics: split the two AGN Lya channels so they can be told apart within a
+   * single run. deriv[14] is the direct UV continuum, deriv[15] the X-ray excitation
+   * already folded into deriv[2] above. Neither feeds back into the ODE. */
+  deriv[14] = run_globals.params.physics.Flag_IncludeAGNLyAlpha ? dstarlya_dt_AGN : 0.0;
+  deriv[15] = dxlya_dt_AGN_soft + dxlya_dt_AGN_hard;
 #else
   deriv[2] = dxlya_dt_GAL + dxlya_dt_AGN_soft + dxlya_dt_AGN_hard + dstarlya_dt_GAL;
 #endif

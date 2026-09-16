@@ -156,9 +156,9 @@ void _ComputeTs(int snapshot)
   int snapshot_counter_backwards[TsNumFilterSteps];
   double zedge;
 #if USE_MINI_HALOS
-  double ans[3], dansdz[14];
+  double ans[3], dansdz[16];
 #else
-  double ans[2], dansdz[7];
+  double ans[2], dansdz[16];
 #endif
   double xHII_call;
   double SFR_GAL[TsNumFilterSteps];
@@ -169,7 +169,9 @@ void _ComputeTs(int snapshot)
   double XAGN_hard[TsNumFilterSteps];
 #if USE_MINI_HALOS
   double AGN_LW[TsNumFilterSteps];
+  double AGN_UV_Lya[TsNumFilterSteps];
   double lw_term_stellar, lw_term_III, lw_term_AGN;
+  double nu_emit; /* emitted-frame frequency in Hz, for the AGN Lya weight */
   int i_spec;
 #endif
 
@@ -231,6 +233,7 @@ void _ComputeTs(int snapshot)
   double J_alpha_ave, xalpha_ave, Xheat_ave, Xion_ave, J_LW_ave;
   J_alpha_ave = xalpha_ave = Xheat_ave = Xion_ave = J_LW_ave = 0.0;
 
+  double J_alpha_ave_AGN_UV = 0.0, J_alpha_ave_AGN_Xray = 0.0;
   double Xheat_ave_AGN_soft = 0.0;
   double Xheat_ave_AGN_hard = 0.0;
 
@@ -870,6 +873,7 @@ void _ComputeTs(int snapshot)
       sum_lyn[R_ct] = 0;
 #if USE_MINI_HALOS
       sum_lyn_III[R_ct] = 0;
+      sum_lyn_AGN[R_ct] = 0;
       if (run_globals.params.Flag_IncludeLymanWerner) {
         sum_lyn_LW[R_ct] = 0;
         sum_lyn_LW_III[R_ct] = 0;
@@ -892,6 +896,16 @@ void _ComputeTs(int snapshot)
         sum_lyn[R_ct] += frecycle(n_ct) * spectral_emissivity(nuprime, 0, 2);
 #if USE_MINI_HALOS
         sum_lyn_III[R_ct] += frecycle(n_ct) * spectral_emissivity(nuprime, 0, 3);
+
+        /* AGN UV continuum Lya pumping. Must sit BEFORE the LW floor clip below: Lya uses
+         * the whole Lyman series, so nuprime here has to stay unclipped. sum_lyn_AGN carries
+         * the 1/(h nu') factor, so it is photons per unit L_1450 per Hz. */
+        if (run_globals.params.physics.Flag_IncludeAGNLyAlpha) {
+          nu_emit = nuprime * NU_LA;
+          sum_lyn_AGN[R_ct] += frecycle(n_ct) *
+                               pow(nu_emit / NU_1450, -run_globals.params.physics.SpecIndexUVAGNSoft) /
+                               (PLANCK * nu_emit);
+        }
         if (run_globals.params.Flag_IncludeLymanWerner) {
           if (nuprime < NU_LW / NU_LA)
             nuprime = NU_LW / NU_LA;
@@ -967,6 +981,7 @@ void _ComputeTs(int snapshot)
         sum_lyn[R_ct] = weight * sum_lyn[R_ct - 1];
 #if USE_MINI_HALOS
         sum_lyn_III[R_ct] = weight * sum_lyn_III[R_ct - 1]; // I am not really sure about this line!
+        sum_lyn_AGN[R_ct] = weight * sum_lyn_AGN[R_ct - 1];
         if (run_globals.params.Flag_IncludeLymanWerner) {
           sum_lyn_LW[R_ct] = weight * sum_lyn_LW[R_ct - 1];
           sum_lyn_LW_AGN[R_ct] = weight * sum_lyn_LW_AGN[R_ct - 1];
@@ -1180,6 +1195,7 @@ void _ComputeTs(int snapshot)
 #if USE_MINI_HALOS
             SFR_III[R_ct] = SMOOTHED_SFR_III[i_smoothed_heating];
             AGN_LW[R_ct] = run_globals.params.Flag_IncludeLymanWerner ? run_globals.params.physics.AGNLWEfficiency * SMOOTHED_AGN_UV[i_smoothed_heating] : 0.0;
+            AGN_UV_Lya[R_ct] = run_globals.params.physics.Flag_IncludeAGNLyAlpha ? SMOOTHED_AGN_UV[i_smoothed_heating] : 0.0;
 #endif
             xHII_call = x_e_box_prev[i_padded];
 
@@ -1298,6 +1314,7 @@ void _ComputeTs(int snapshot)
                     XAGN_soft,
                     XAGN_hard,
                     AGN_LW,
+                    AGN_UV_Lya,
                     freq_int_heat_GAL,
                     freq_int_ion_GAL,
                     freq_int_lya_GAL,
@@ -1335,6 +1352,8 @@ void _ComputeTs(int snapshot)
                     ans,
                     dansdz);
 #endif
+          J_alpha_ave_AGN_UV += dansdz[14];
+          J_alpha_ave_AGN_Xray += dansdz[15];
           Xheat_ave_AGN_soft += dansdz[5];
           Xheat_ave_AGN_hard += dansdz[6];
 
@@ -1401,6 +1420,8 @@ void _ComputeTs(int snapshot)
     MPI_Allreduce(MPI_IN_PLACE, &xalpha_ave, 1, MPI_DOUBLE, MPI_SUM, run_globals.mpi_comm);
     MPI_Allreduce(MPI_IN_PLACE, &Xheat_ave, 1, MPI_DOUBLE, MPI_SUM, run_globals.mpi_comm);
     MPI_Allreduce(MPI_IN_PLACE, &Xion_ave, 1, MPI_DOUBLE, MPI_SUM, run_globals.mpi_comm);
+    MPI_Allreduce(MPI_IN_PLACE, &J_alpha_ave_AGN_UV, 1, MPI_DOUBLE, MPI_SUM, run_globals.mpi_comm);
+    MPI_Allreduce(MPI_IN_PLACE, &J_alpha_ave_AGN_Xray, 1, MPI_DOUBLE, MPI_SUM, run_globals.mpi_comm);
     MPI_Allreduce(MPI_IN_PLACE, &Xheat_ave_AGN_soft, 1, MPI_DOUBLE, MPI_SUM, run_globals.mpi_comm);
     MPI_Allreduce(MPI_IN_PLACE, &Xheat_ave_AGN_hard, 1, MPI_DOUBLE, MPI_SUM, run_globals.mpi_comm);
 #if USE_MINI_HALOS
@@ -1416,6 +1437,8 @@ void _ComputeTs(int snapshot)
     xalpha_ave /= total_n_cells;
     Xheat_ave /= total_n_cells;
     Xion_ave /= total_n_cells;
+    J_alpha_ave_AGN_UV /= total_n_cells;
+    J_alpha_ave_AGN_Xray /= total_n_cells;
     Xheat_ave_AGN_soft /= total_n_cells;
     Xheat_ave_AGN_hard /= total_n_cells;
 #if USE_MINI_HALOS
@@ -1433,6 +1456,8 @@ void _ComputeTs(int snapshot)
     run_globals.reion_grids.volume_ave_xalpha = xalpha_ave;
     run_globals.reion_grids.volume_ave_Xheat = Xheat_ave;
     run_globals.reion_grids.volume_ave_Xion = Xion_ave;
+    run_globals.reion_grids.volume_ave_J_alpha_AGN_UV = J_alpha_ave_AGN_UV;
+    run_globals.reion_grids.volume_ave_J_alpha_AGN_Xray = J_alpha_ave_AGN_Xray;
     run_globals.reion_grids.volume_ave_Xheat_AGN_soft = Xheat_ave_AGN_soft;
     run_globals.reion_grids.volume_ave_Xheat_AGN_hard = Xheat_ave_AGN_hard;
 #if USE_MINI_HALOS

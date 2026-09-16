@@ -56,6 +56,9 @@ double* sum_lyn_LW;
 double* sum_lyn_III;
 double* sum_lyn_LW_III;
 double* sum_lyn_LW_AGN;
+// Lya analogue of sum_lyn for the AGN UV continuum: sum over Lyman levels of
+// frecycle(n) * (nu'/nu_1450)^-alpha / (h nu'), i.e. photons per unit L_1450 per Hz.
+double* sum_lyn_AGN;
 // Per-Lyman-level breakdown of the LW sums, indexed [R_ct*LW_NLEV + n_ct]; LW_zpp is each shell's source redshift.
 double* LW_spectral_stellar;
 double* LW_spectral_III;
@@ -87,6 +90,7 @@ extern double* sum_lyn_LW;
 extern double* sum_lyn_III;
 extern double* sum_lyn_LW_III;
 extern double* sum_lyn_LW_AGN;
+extern double* sum_lyn_AGN;
 extern double* LW_spectral_stellar;
 extern double* LW_spectral_III;
 extern double* LW_spectral_AGN;
@@ -221,6 +225,7 @@ extern "C"
                  const double XAGN_soft[],
                  const double XAGN_hard[],
                  const double AGN_UV[],
+                 const double AGN_UV_Lya[],
                  const double freq_int_heat_GAL[],
                  const double freq_int_ion_GAL[],
                  const double freq_int_lya_GAL[],
