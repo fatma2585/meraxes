@@ -485,7 +485,7 @@ void _ComputeTs(int snapshot)
           BHXrayEmissivity_soft_unfiltered[ii] /= (float)total_n_cells;
       }
 #if USE_MINI_HALOS
-      if (run_globals.params.Flag_IncludeLymanWerner) {
+      if (run_globals.params.Flag_IncludeSpinTemp) {
         fftwf_execute(run_globals.reion_grids.BHUVEmissivity_forward_plan);
         for (int ii = 0; ii < slab_n_complex; ii++)
           BHUVEmissivity_unfiltered[ii] /= (float)total_n_cells;
@@ -504,7 +504,7 @@ void _ComputeTs(int snapshot)
       if (agn_soft_needed)
         memcpy(BHXrayEmissivity_soft_filtered, BHXrayEmissivity_soft_unfiltered, sizeof(fftwf_complex) * slab_n_complex);
 #if USE_MINI_HALOS
-      if (run_globals.params.Flag_IncludeLymanWerner)
+      if (run_globals.params.Flag_IncludeSpinTemp)
         memcpy(BHUVEmissivity_filtered, BHUVEmissivity_unfiltered, sizeof(fftwf_complex) * slab_n_complex);
 #endif
 
@@ -523,7 +523,7 @@ void _ComputeTs(int snapshot)
         if (agn_soft_needed)
           filter(BHXrayEmissivity_soft_filtered, local_ix_start, local_nix, ReionGridDim, (float)R, run_globals.params.TsHeatingFilterType);
 #if USE_MINI_HALOS
-        if (run_globals.params.Flag_IncludeLymanWerner)
+        if (run_globals.params.Flag_IncludeSpinTemp)
           filter(BHUVEmissivity_filtered, local_ix_start, local_nix, ReionGridDim, (float)R, run_globals.params.TsHeatingFilterType);
 #endif
       }
@@ -541,7 +541,7 @@ void _ComputeTs(int snapshot)
       if (agn_soft_needed)
         fftwf_execute(run_globals.reion_grids.BHXrayEmissivity_soft_filtered_reverse_plan);
 #if USE_MINI_HALOS
-      if (run_globals.params.Flag_IncludeLymanWerner)
+      if (run_globals.params.Flag_IncludeSpinTemp)
         fftwf_execute(run_globals.reion_grids.BHUVEmissivity_filtered_reverse_plan);
 #endif
 
@@ -598,7 +598,7 @@ void _ComputeTs(int snapshot)
                 agn_xray_soft_ave += SMOOTHED_AGN_soft[i_smoothed_heating];
               }
 #if USE_MINI_HALOS
-              if (run_globals.params.Flag_IncludeLymanWerner) {
+              if (run_globals.params.Flag_IncludeSpinTemp) {
                 ((float*)BHUVEmissivity_filtered)[i_padded] = fmaxf(((float*)BHUVEmissivity_filtered)[i_padded], 0.0);
 
                 bh_uv = ((float*)BHUVEmissivity_filtered)[i_padded];
@@ -702,7 +702,7 @@ void _ComputeTs(int snapshot)
                                                    * pow(units->UnitLength_in_cm, -3.0);
               }
 #if USE_MINI_HALOS
-              if (run_globals.params.Flag_IncludeLymanWerner) {
+              if (run_globals.params.Flag_IncludeSpinTemp) {
                 ((float*)BHUVEmissivity_filtered)[i_padded] = fmaxf(((float*)BHUVEmissivity_filtered)[i_padded], 0.0);
 
                 bh_uv = ((float*)BHUVEmissivity_filtered)[i_padded];

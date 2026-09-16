@@ -1180,7 +1180,7 @@ void malloc_reionization_grids()
       }
 
 #if USE_MINI_HALOS
-      if (run_globals.params.Flag_IncludeLymanWerner) {
+      if (run_globals.params.Flag_IncludeSpinTemp) {
         grids->BHUVEmissivity  = fftwf_alloc_real((size_t)slab_n_complex * 2);
         grids->bh_uv_histories = fftwf_alloc_real((size_t)slab_n_complex * 2 * run_globals.NstoreSnapshots_Heating);
 
@@ -1472,7 +1472,7 @@ void free_reionization_grids()
 #if USE_MINI_HALOS
     free(grids->SMOOTHED_SFR_III);
 
-    if (run_globals.params.Flag_IncludeLymanWerner) {
+    if (run_globals.params.Flag_IncludeSpinTemp) {
       free(grids->SMOOTHED_AGN_UV);
       fftwf_destroy_plan(grids->BHUVEmissivity_filtered_reverse_plan);
       fftwf_destroy_plan(grids->BHUVEmissivity_forward_plan);
@@ -2098,7 +2098,7 @@ void construct_baryon_grids(int snapshot, int local_ngals)
               bh_xray_hist_grid_soft[snap*local_n_complex * 2 + ii];
       }
 #if USE_MINI_HALOS
-      if (run_globals.params.Flag_IncludeLymanWerner) {
+      if (run_globals.params.Flag_IncludeSpinTemp) {
         bh_uv_grid[ii] = 0.0f;
         for (int snap = run_globals.NstoreSnapshots_Heating - 2; snap >= 0; snap--)
           bh_uv_hist_grid[(snap+1)*local_n_complex * 2 + ii] =
@@ -2163,9 +2163,9 @@ void construct_baryon_grids(int snapshot, int local_ngals)
       continue;
 
 #if USE_MINI_HALOS
-    // AGN UV: independent of Flag_IncludeAGNXray, gated on Flag_IncludeLymanWerner instead.
+    // AGN UV is a spin-temperature source term (feeds both LW and Lya), so it follows Flag_IncludeSpinTemp.
     if (prop == prop_bh_uv_emissivity &&
-        (!run_globals.params.Flag_IncludeSpinTemp || !run_globals.params.Flag_IncludeLymanWerner))
+        (!run_globals.params.Flag_IncludeSpinTemp))
       continue;
 #endif
 
@@ -2812,7 +2812,7 @@ void load_reion_bh_grids(int snapshot_counter_backwards, float weight, const int
                   }
 #if USE_MINI_HALOS
             /* AGN Lyman-Werner, independent of Flag_IncludeAGNXray. */
-    if (run_globals.params.Flag_IncludeLymanWerner)
+    if (run_globals.params.Flag_IncludeSpinTemp)
      for (int ii = 0; ii < local_nix; ii++)
         for (int jj = 0; jj < ReionGridDim; jj++)
           for (int kk = 0; kk < ReionGridDim; kk++){     
@@ -2841,7 +2841,7 @@ void load_reion_bh_grids(int snapshot_counter_backwards, float weight, const int
                   }
 #if USE_MINI_HALOS
             /* AGN Lyman-Werner, independent of Flag_IncludeAGNXray. */
-    if (run_globals.params.Flag_IncludeLymanWerner)
+    if (run_globals.params.Flag_IncludeSpinTemp)
      for (int ii = 0; ii < local_nix; ii++)
         for (int jj = 0; jj < ReionGridDim; jj++)
           for (int kk = 0; kk < ReionGridDim; kk++){     
