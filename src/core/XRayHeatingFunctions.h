@@ -32,9 +32,7 @@
  * quantities, which only exist under USE_MINI_HALOS. The two AGN Lya diagnostics
  * are appended after whichever of those is the last live slot, so a non-mini build
  * carries 9 doubles instead of 16 and every entry it declares is one it writes.
- * They are diagnostics only: nothing here feeds back into the ODE.
- * Both builds now carry a real AGN direct-UV Lya value: that channel is not
- * mini-halo physics and is compiled into every configuration. */
+ * They are diagnostics only: nothing here feeds back into the ODE. */
 #if USE_MINI_HALOS
 #define DERIV_NUM          16
 #define DERIV_JA_AGN_UV    14

@@ -831,10 +831,6 @@ void malloc_reionization_grids()
   grids->bh_xray_histories_soft = NULL;
   grids->SMOOTHED_AGN_soft      = NULL;
 
-  /* AGN UV grid: not mini-halo physics -- AGN live in atomic-cooling haloes and
-   * above, and Lya pumping is Wouthuysen-Field scattering in the diffuse IGM. It
-   * only ever sat under USE_MINI_HALOS because the grid was first written for the
-   * Lyman-Werner channel, which IS mini-halo physics (H2 photodissociation). */
   grids->BHUVEmissivity  = NULL;
   grids->bh_uv_histories = NULL;
   grids->SMOOTHED_AGN_UV = NULL;

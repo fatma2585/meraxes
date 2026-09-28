@@ -170,10 +170,6 @@ void _ComputeTs(int snapshot)
   double lw_term_stellar, lw_term_III, lw_term_AGN;
   int i_spec;
 #endif
-  /* AGN direct-UV Lya: not mini-halo physics (AGN sit in atomic-cooling haloes and
-   * pump Lya by Wouthuysen-Field scattering in the diffuse IGM), so these live in
-   * every build. AGN_LW above stays gated -- Lyman-Werner feedback acts on H2 cooling
-   * in mini-haloes, which is genuinely mini-halo physics. */
   double AGN_UV_Lya[TsNumFilterSteps];
   double nu_emit; /* emitted-frame frequency in Hz, for the AGN Lya weight */
   double lya_band_boost; /* band-2 multiplier from the BLR line; derived, see below */
@@ -906,8 +902,7 @@ void _ComputeTs(int snapshot)
         sum_lyn[R_ct] += frecycle(n_ct) * spectral_emissivity(nuprime, 0, 2);
         /* AGN UV continuum Lya pumping. Must sit BEFORE the LW floor clip below: Lya uses
          * the whole Lyman series, so nuprime here has to stay unclipped. sum_lyn_AGN carries
-         * the 1/(h nu') factor, so it is photons per unit L_1450 per Hz.
-         * Not mini-halo physics -- runs in every build. */
+         * the 1/(h nu') factor, so it is photons per unit L_1450 per Hz. */
         if (run_globals.params.physics.Flag_IncludeAGNLyAlpha) {
           nu_emit = nuprime * NU_LA;
           /* Band-2 BLR line: only lines blueward of Lya in a band with f_rec > 0 reach lower-z

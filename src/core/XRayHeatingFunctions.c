@@ -51,7 +51,6 @@ int init_heat()
 #if USE_MINI_HALOS
   sum_lyn_III = calloc(TsNumFilterSteps, sizeof(double));
 #endif
-  /* AGN UV Lya table: not mini-halo physics, allocated in every build. */
   sum_lyn_AGN = calloc(TsNumFilterSteps, sizeof(double));
 
   kappa_10(1.0, 1); // 1 is the flag, allocates memory.
@@ -1356,10 +1355,7 @@ void evolveInt(float zp,
 #endif
   /* Prefix marks HOW the Lya was produced, suffix marks WHO produced it:
    *   dx...   X-ray excitation      dstar... stellar UV      duv... AGN UV continuum
-   * so the AGN direct-UV terms are duv*, not dstar* -- they have nothing to do with stars.
-   * AGN live in atomic-cooling haloes and above and pump Lya by Wouthuysen-Field
-   * scattering in the diffuse IGM, so this channel is NOT mini-halo physics and is
-   * declared in every build. */
+   * so the AGN direct-UV terms are duv*, not dstar* -- they have nothing to do with stars. */
   double duvlya_dt_AGN;
 
   double dxheat_dt_AGN_soft      = 0.0;
@@ -1451,7 +1447,6 @@ void evolveInt(float zp,
 
       // Direct AGN UV continuum Lya pumping. Same structure as the stellar term, but the
       // source is a UV emissivity rather than an SFR, so sum_lyn_AGN already carries 1/(h nu).
-      // Not mini-halo physics: AGN sit in atomic-cooling haloes, so this runs in every build.
       if (run_globals.params.physics.Flag_IncludeAGNLyAlpha)
         duvlya_dt_AGN += AGN_UV_Lya[zpp_ct] * pow(1 + zp, 2) * (1 + zpp) * sum_lyn_AGN[zpp_ct] * dt_dzpp * dzpp;
 

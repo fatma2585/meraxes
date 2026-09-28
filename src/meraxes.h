@@ -559,7 +559,6 @@ typedef struct reion_grids_t
 #if USE_MINI_HALOS
   double* SMOOTHED_SFR_III;
 #endif
-  /* AGN UV grid: not mini-halo physics, present in every build. */
   double* SMOOTHED_AGN_UV;    //!< per-cell AGN UV luminosity density per shell [1e21 erg/s/Hz/cm^3]
 
   float* BHXrayEmissivity_hard;        //!< Per-cell AGN X-ray emissivity grid (current snapshot, hard band) [slab_n_complex*2]
