@@ -50,8 +50,9 @@ int init_heat()
   sum_lyn = calloc(TsNumFilterSteps, sizeof(double));
 #if USE_MINI_HALOS
   sum_lyn_III = calloc(TsNumFilterSteps, sizeof(double));
-  sum_lyn_AGN = calloc(TsNumFilterSteps, sizeof(double));
 #endif
+  /* AGN UV Lya table: not mini-halo physics, allocated in every build. */
+  sum_lyn_AGN = calloc(TsNumFilterSteps, sizeof(double));
 
   kappa_10(1.0, 1); // 1 is the flag, allocates memory.
   if (kappa_10_elec(1.0, 1) < 0)
@@ -87,8 +88,8 @@ void destruct_heat()
 
 #if USE_MINI_HALOS
   free(sum_lyn_III);
-  free(sum_lyn_AGN);
 #endif
+  free(sum_lyn_AGN);
 }
 
 #if USE_MINI_HALOS
@@ -1320,6 +1321,7 @@ void evolveInt(float zp,
 #endif
                const double XAGN_soft[],
                const double XAGN_hard[],
+               const double AGN_UV_Lya[],
                const double freq_int_heat_GAL[],
                const double freq_int_ion_GAL[],
                const double freq_int_lya_GAL[],
@@ -1351,11 +1353,14 @@ void evolveInt(float zp,
   // Do this to differentiate between Pop III and Pop II contribution
   double dxlya_dt_III, dstarlya_dt_III, dstarlyLW_dt_III, dxheat_dt_III, dxion_source_dt_III, zpp_integrand_III;
   double dspec_dzp_II, dxheat_dzp_II;
+#endif
   /* Prefix marks HOW the Lya was produced, suffix marks WHO produced it:
    *   dx...   X-ray excitation      dstar... stellar UV      duv... AGN UV continuum
-   * so the AGN direct-UV terms are duv*, not dstar* -- they have nothing to do with stars. */
+   * so the AGN direct-UV terms are duv*, not dstar* -- they have nothing to do with stars.
+   * AGN live in atomic-cooling haloes and above and pump Lya by Wouthuysen-Field
+   * scattering in the diffuse IGM, so this channel is NOT mini-halo physics and is
+   * declared in every build. */
   double duvlya_dt_AGN;
-#endif
 
   double dxheat_dt_AGN_soft      = 0.0;
   double dxion_source_dt_AGN_soft = 0.0;
@@ -1388,8 +1393,8 @@ void evolveInt(float zp,
   dxlya_dt_III = 0;
   dstarlya_dt_III = 0;
   dstarlyLW_dt_III = 0;
-  duvlya_dt_AGN = 0;
 #endif
+  duvlya_dt_AGN = 0;
   deriv[5] = 0.0;
   deriv[6] = 0.0;
 
@@ -1437,17 +1442,18 @@ void evolveInt(float zp,
       if (run_globals.params.physics.Flag_IncludeStarLya)
         dstarlya_dt_III += SFR_III[zpp_ct] * pow(1 + zp, 2) * (1 + zpp) * sum_lyn_III[zpp_ct] * dt_dzpp * dzpp;
 
-      // Direct AGN UV continuum Lya pumping. Same structure as the stellar term, but the
-      // source is a UV emissivity rather than an SFR, so sum_lyn_AGN already carries 1/(h nu).
-      if (run_globals.params.physics.Flag_IncludeAGNLyAlpha)
-        duvlya_dt_AGN += AGN_UV_Lya[zpp_ct] * pow(1 + zp, 2) * (1 + zpp) * sum_lyn_AGN[zpp_ct] * dt_dzpp * dzpp;
-
       if (run_globals.params.Flag_IncludeLymanWerner) {
         dstarlyLW_dt_GAL += SFR_GAL[zpp_ct] * pow(1 + zp, 2) * (1 + zpp) * sum_lyn_LW[zpp_ct] * dt_dzpp * dzpp;
         dstarlyLW_dt_III += SFR_III[zpp_ct] * pow(1 + zp, 2) * (1 + zpp) * sum_lyn_LW_III[zpp_ct] * dt_dzpp * dzpp;
         duvlyLW_dt_AGN += AGN_LW[zpp_ct] * pow(1 + zp, 2) * (1 + zpp) * sum_lyn_LW_AGN[zpp_ct] * dt_dzpp * dzpp;
       }
 #endif
+
+      // Direct AGN UV continuum Lya pumping. Same structure as the stellar term, but the
+      // source is a UV emissivity rather than an SFR, so sum_lyn_AGN already carries 1/(h nu).
+      // Not mini-halo physics: AGN sit in atomic-cooling haloes, so this runs in every build.
+      if (run_globals.params.physics.Flag_IncludeAGNLyAlpha)
+        duvlya_dt_AGN += AGN_UV_Lya[zpp_ct] * pow(1 + zp, 2) * (1 + zpp) * sum_lyn_AGN[zpp_ct] * dt_dzpp * dzpp;
 
       /* dX_AGN_soft/dt += (dt/dz'')dz'' × XAGN_soft[zpp_ct] × (1+z'')^-alpha_soft × freq_int_X_AGN_soft[zpp_ct]
        * dX_AGN_hard/dt += (dt/dz'')dz'' × XAGN_hard[zpp_ct] × (1+z'')^-alpha_hard × freq_int_X_AGN_hard[zpp_ct] */
@@ -1489,6 +1495,13 @@ void evolveInt(float zp,
 
     dstarlya_dt_III *= Conversion_factor;
 
+    if (run_globals.params.Flag_IncludeLymanWerner) {
+      dstarlyLW_dt_GAL *= Conversion_factor;
+      dstarlyLW_dt_III *= Conversion_factor;
+      duvlyLW_dt_AGN *= Conversion_factor_AGN_UV;
+    }
+#endif
+
     /* AGN broad Lya EMISSION LINE, absorbed locally.
      *
      * Continuum photons are emitted blueward of Lya and redshift INTO resonance far from
@@ -1519,13 +1532,6 @@ void evolveInt(float zp,
 
     if (run_globals.params.physics.Flag_IncludeAGNLyAlpha)
       duvlya_dt_AGN *= Conversion_factor_AGN_UV;
-
-    if (run_globals.params.Flag_IncludeLymanWerner) {
-      dstarlyLW_dt_GAL *= Conversion_factor;
-      dstarlyLW_dt_III *= Conversion_factor;
-      duvlyLW_dt_AGN *= Conversion_factor_AGN_UV;
-    }
-#endif
 
     dxheat_dt_AGN_soft       *= const_zp_prefactor_AGN_soft;
     dxion_source_dt_AGN_soft *= const_zp_prefactor_AGN_soft;
@@ -1622,11 +1628,12 @@ void evolveInt(float zp,
   deriv[DERIV_JA_AGN_XRAY] = dxlya_dt_AGN_soft + dxlya_dt_AGN_hard;
 #else
   deriv[2] = dxlya_dt_GAL + dxlya_dt_AGN_soft + dxlya_dt_AGN_hard + dstarlya_dt_GAL;
+  if (run_globals.params.physics.Flag_IncludeAGNLyAlpha)
+    deriv[2] += duvlya_dt_AGN;
 
-  /* No mini-halos -> duvlya_dt_AGN does not exist in this build (the AGN direct-UV
-   * Lya channel is compiled out entirely), so the UV diagnostic is identically zero.
-   * The X-ray one is still meaningful: dxlya_dt_AGN_soft/hard are declared in both. */
-  deriv[DERIV_JA_AGN_UV] = 0.0;
+  /* Same two diagnostics as the mini-halo branch. The AGN direct-UV channel is compiled
+   * into this build too, so DERIV_JA_AGN_UV carries a real value rather than zero. */
+  deriv[DERIV_JA_AGN_UV] = run_globals.params.physics.Flag_IncludeAGNLyAlpha ? duvlya_dt_AGN : 0.0;
   deriv[DERIV_JA_AGN_XRAY] = dxlya_dt_AGN_soft + dxlya_dt_AGN_hard;
 #endif
 

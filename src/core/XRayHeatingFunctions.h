@@ -32,7 +32,9 @@
  * quantities, which only exist under USE_MINI_HALOS. The two AGN Lya diagnostics
  * are appended after whichever of those is the last live slot, so a non-mini build
  * carries 9 doubles instead of 16 and every entry it declares is one it writes.
- * They are diagnostics only: nothing here feeds back into the ODE. */
+ * They are diagnostics only: nothing here feeds back into the ODE.
+ * Both builds now carry a real AGN direct-UV Lya value: that channel is not
+ * mini-halo physics and is compiled into every configuration. */
 #if USE_MINI_HALOS
 #define DERIV_NUM          16
 #define DERIV_JA_AGN_UV    14
@@ -290,6 +292,7 @@ extern "C"
 #endif
                  const double XAGN_soft[],
                  const double XAGN_hard[],
+                 const double AGN_UV_Lya[],
                  const double freq_int_heat_GAL[],
                  const double freq_int_ion_GAL[],
                  const double freq_int_lya_GAL[],
