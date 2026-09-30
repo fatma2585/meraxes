@@ -1497,24 +1497,9 @@ void evolveInt(float zp,
     }
 #endif
 
-    /* AGN broad Lya EMISSION LINE, absorbed locally.
-     *
-     * Continuum photons are emitted blueward of Lya and redshift INTO resonance far from
-     * the source, which is what the zpp shell loop above integrates. Line photons are
-     * emitted AT resonance, so they are absorbed essentially at the source and couple gas
-     * at the EMISSION redshift instead. In the shell integral that is a delta function in
-     * emitted frequency, which collapses the sum to a single local term at zpp == zp:
-     *
-     *   dstarlya_line = eps_1450(zp) * (1+zp)^4 * f_rec(2) * N_line * |dt/dz| / nu_alpha
-     *
-     * using nu' = nu_alpha (1+zpp)/(1+zp)  =>  dzpp = (1+zp) dnu' / nu_alpha, and
-     *   N_line = EW * (nu_alpha/nu_1450)^-alpha * nu_alpha / (c * h)   [photons per erg].
-     * f_rec(2) = 1, so it is omitted. AGN_UV_Lya[0] is the innermost shell, i.e. the local
-     * emissivity. dtdz() is negative (it matches the negative dzpp in the loop), so fabs().
-     *
-     * This is summed straight into duvlya_dt_AGN, so it flows through
-     * deriv[DERIV_JA_AGN_UV] and deriv[2] exactly like the continuum. Flag off ->
-     * term is identically zero. */
+    /* AGN broad Lya emission line: emitted AT resonance, so absorbed at the source.
+     * The shell integral collapses to one local term at zpp == zp (delta function in
+     * emitted frequency), giving eps_1450(zp) * (1+zp)^4 * N_line * |dt/dz| / nu_alpha. */
     if (run_globals.params.physics.Flag_IncludeAGNLyAlpha &&
         run_globals.params.physics.Flag_IncludeAGNLyaLine) {
       lya_line_ew_cm = run_globals.params.physics.AGNLyaLineEW * 1e-8; /* Angstrom -> cm */
@@ -1614,11 +1599,7 @@ void evolveInt(float zp,
     deriv[10] += duvlya_dt_AGN;
   }
 
-  /* Diagnostics: split the two AGN Lya channels so they can be told apart within a
-   * single run. DERIV_JA_AGN_UV is the direct UV continuum, DERIV_JA_AGN_XRAY the
-   * X-ray excitation already folded into deriv[2] above. Neither feeds back into
-   * the ODE. Both are set in BOTH builds: _ComputeTs() reads them unconditionally,
-   * so leaving either unwritten hands it an uninitialised stack slot. */
+  /* Diagnostics only, set in both builds -- _ComputeTs() reads them unconditionally. */
   deriv[DERIV_JA_AGN_UV] = run_globals.params.physics.Flag_IncludeAGNLyAlpha ? duvlya_dt_AGN : 0.0;
   deriv[DERIV_JA_AGN_XRAY] = dxlya_dt_AGN_soft + dxlya_dt_AGN_hard;
 #else

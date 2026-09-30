@@ -171,8 +171,9 @@ void _ComputeTs(int snapshot)
   int i_spec;
 #endif
   double AGN_UV_Lya[TsNumFilterSteps];
-  double nu_emit; /* emitted-frame frequency in Hz, for the AGN Lya weight */
-  double lya_band_boost; /* band-2 multiplier from the BLR line; derived, see below */
+  double nu_emit;        /* emitted-frame frequency, for the AGN Lya weight */
+  double lya_band_boost; /* band-2 BLR multiplier, derived below */
+  double a_uv, nu_lo, nu_hi, nu_L, n_cont, n_line;
 
 #if USE_MINI_HALOS
   double SFR_III[TsNumFilterSteps];
@@ -716,21 +717,16 @@ void _ComputeTs(int snapshot)
       NO_LIGHT = 1;
     }
 
-    /* Band-2 multiplier for the BLR emission line on the AGN UV continuum. DERIVED here from
-     * the measured equivalent width and the continuum slope, so the two can never fall out of
-     * step (a hand-set multiplier silently stops matching its EW once SpecIndexUVAGNSoft moves).
-     *   line photons = EW * (nu_L/nu_1450)^-a * nu_L / (c h)
-     *   band-2 cont. = (nu_1450^a / h) * (nu_2^-a - nu_3^-a) / a
-     * Band 2 runs from Lya (nu_n(2)=1) to Lyb (nu_n(3)), in units of NU_LA. */
+    /* Band-2 BLR multiplier, derived from the EW so the two cannot drift apart. */
     lya_band_boost = 1.0;
     if (run_globals.params.physics.AGNBandLineEW > 0.0) {
-      double a_uv = run_globals.params.physics.SpecIndexUVAGNSoft;
-      double nu_lo = nu_n(2) * NU_LA;
-      double nu_hi = nu_n(3) * NU_LA;
-      double nu_L = SPEED_OF_LIGHT / (AGN_BAND_LINE_LAMBDA * 1e-8);
-      double n_cont = pow(NU_1450, a_uv) / PLANCK * (pow(nu_lo, -a_uv) - pow(nu_hi, -a_uv)) / a_uv;
-      double n_line = (run_globals.params.physics.AGNBandLineEW * 1e-8) *
-                      pow(nu_L / NU_1450, -a_uv) * nu_L / (SPEED_OF_LIGHT * PLANCK);
+      a_uv = run_globals.params.physics.SpecIndexUVAGNSoft;
+      nu_lo = nu_n(2) * NU_LA;
+      nu_hi = nu_n(3) * NU_LA;
+      nu_L = SPEED_OF_LIGHT / (AGN_BAND_LINE_LAMBDA * 1e-8);
+      n_cont = pow(NU_1450, a_uv) / PLANCK * (pow(nu_lo, -a_uv) - pow(nu_hi, -a_uv)) / a_uv;
+      n_line = (run_globals.params.physics.AGNBandLineEW * 1e-8) *
+               pow(nu_L / NU_1450, -a_uv) * nu_L / (SPEED_OF_LIGHT * PLANCK);
       lya_band_boost = 1.0 + n_line / n_cont;
       mlog("AGN band-2 BLR line: EW = %.2f A at %.1f A, alpha = %.3f -> boost = %.6f",
            MLOG_MESG, run_globals.params.physics.AGNBandLineEW, AGN_BAND_LINE_LAMBDA,

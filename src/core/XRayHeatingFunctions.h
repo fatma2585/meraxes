@@ -54,11 +54,8 @@ static inline bool agn_uv_grid_needed(void)
   return run_globals.params.Flag_IncludeLymanWerner || run_globals.params.physics.Flag_IncludeAGNLyAlpha;
 }
 
-/* SMOOTHED_AGN_UV is STORED scaled by 1/AGN_UV_UNIT, i.e. in units of 1e21
- * erg/s/Hz/cm^3, so the grid holds O(1) numbers instead of O(1e21). Every consumer
- * multiplies by AGN_UV_UNIT to get back to CGS before it is used in any physics.
- * Keep those two in step: scaling the store without compensating a consumer would
- * silently make that channel 1e21 too weak. */
+/* SMOOTHED_AGN_UV is stored in units of 1e21 erg/s/Hz/cm^3; every consumer
+ * multiplies by AGN_UV_UNIT to recover CGS. Keep the two in step. */
 #define AGN_UV_UNIT (double)1e21
 
 #define NSPEC_MAX (int)23
