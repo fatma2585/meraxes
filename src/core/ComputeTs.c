@@ -170,7 +170,7 @@ void _ComputeTs(int snapshot)
   double lw_term_stellar, lw_term_III, lw_term_AGN;
   int i_spec;
 #endif
-  double AGN_UV_Lya[TsNumFilterSteps];
+  double AGN_eps1450[TsNumFilterSteps]; /* AGN UV emissivity at 1450A, per shell */
   double nu_emit;        /* emitted-frame frequency, for the AGN Lya weight */
   double lya_band_boost; /* band-2 BLR multiplier, derived below */
   double a_uv, nu_lo, nu_hi, nu_L, n_cont, n_line;
@@ -1205,7 +1205,7 @@ void _ComputeTs(int snapshot)
                                  SMOOTHED_AGN_UV[i_smoothed_heating] * AGN_UV_UNIT
                              : 0.0;
 #endif
-            AGN_UV_Lya[R_ct] = run_globals.params.physics.Flag_IncludeAGNLyAlpha
+            AGN_eps1450[R_ct] = run_globals.params.physics.Flag_IncludeAGNLyAlpha
                                  ? SMOOTHED_AGN_UV[i_smoothed_heating] * AGN_UV_UNIT
                                  : 0.0;
             xHII_call = x_e_box_prev[i_padded];
@@ -1325,7 +1325,7 @@ void _ComputeTs(int snapshot)
                     XAGN_soft,
                     XAGN_hard,
                     AGN_LW,
-                    AGN_UV_Lya,
+                    AGN_eps1450,
                     freq_int_heat_GAL,
                     freq_int_ion_GAL,
                     freq_int_lya_GAL,
@@ -1350,7 +1350,7 @@ void _ComputeTs(int snapshot)
 #endif
                     XAGN_soft,
                     XAGN_hard,
-                    AGN_UV_Lya,
+                    AGN_eps1450,
                     freq_int_heat_GAL,
                     freq_int_ion_GAL,
                     freq_int_lya_GAL,

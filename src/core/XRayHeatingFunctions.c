@@ -1294,7 +1294,7 @@ void evolveInt(float zp,
                const double XAGN_soft[],
                const double XAGN_hard[],
                const double AGN_LW[],
-               const double AGN_UV_Lya[],
+               const double AGN_eps1450[],
                const double freq_int_heat_GAL[],
                const double freq_int_ion_GAL[],
                const double freq_int_lya_GAL[],
@@ -1320,7 +1320,7 @@ void evolveInt(float zp,
 #endif
                const double XAGN_soft[],
                const double XAGN_hard[],
-               const double AGN_UV_Lya[],
+               const double AGN_eps1450[],
                const double freq_int_heat_GAL[],
                const double freq_int_ion_GAL[],
                const double freq_int_lya_GAL[],
@@ -1448,7 +1448,7 @@ void evolveInt(float zp,
       // Direct AGN UV continuum Lya pumping. Same structure as the stellar term, but the
       // source is a UV emissivity rather than an SFR, so sum_lyn_AGN already carries 1/(h nu).
       if (run_globals.params.physics.Flag_IncludeAGNLyAlpha)
-        duvlya_dt_AGN += AGN_UV_Lya[zpp_ct] * pow(1 + zp, 2) * (1 + zpp) * sum_lyn_AGN[zpp_ct] * dt_dzpp * dzpp;
+        duvlya_dt_AGN += AGN_eps1450[zpp_ct] * pow(1 + zp, 2) * (1 + zpp) * sum_lyn_AGN[zpp_ct] * dt_dzpp * dzpp;
 
       /* dX_AGN_soft/dt += (dt/dz'')dz'' × XAGN_soft[zpp_ct] × (1+z'')^-alpha_soft × freq_int_X_AGN_soft[zpp_ct]
        * dX_AGN_hard/dt += (dt/dz'')dz'' × XAGN_hard[zpp_ct] × (1+z'')^-alpha_hard × freq_int_X_AGN_hard[zpp_ct] */
@@ -1506,7 +1506,7 @@ void evolveInt(float zp,
       lya_line_nphot = lya_line_ew_cm *
                        pow(NU_LA / NU_1450, -run_globals.params.physics.SpecIndexUVAGNSoft) *
                        NU_LA / (SPEED_OF_LIGHT * PLANCK);
-      duvlya_dt_AGN += AGN_UV_Lya[0] * pow(1 + zp, 4) * lya_line_nphot *
+      duvlya_dt_AGN += AGN_eps1450[0] * pow(1 + zp, 4) * lya_line_nphot *
                          fabs(dtdz(zp)) / NU_LA;
     }
 
