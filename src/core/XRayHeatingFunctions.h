@@ -54,10 +54,6 @@ static inline bool agn_uv_grid_needed(void)
   return run_globals.params.Flag_IncludeLymanWerner || run_globals.params.physics.Flag_IncludeAGNLyAlpha;
 }
 
-/* SMOOTHED_AGN_UV is stored in units of 1e21 erg/s/Hz/cm^3; every consumer
- * multiplies by AGN_UV_UNIT to recover CGS. Keep the two in step. */
-#define AGN_UV_UNIT (double)1e21
-
 #define NSPEC_MAX (int)23
 // Row stride for LW_spectral_*: the Lyman loop reaches n_ct = NSPEC_MAX, so rows need NSPEC_MAX+1.
 #define LW_NLEV (NSPEC_MAX + 1)

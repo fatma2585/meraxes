@@ -592,7 +592,7 @@ void _ComputeTs(int snapshot)
                 ((float*)BHUVEmissivity_filtered)[i_padded] = fmaxf(((float*)BHUVEmissivity_filtered)[i_padded], 0.0);
 
                 bh_uv = ((float*)BHUVEmissivity_filtered)[i_padded];
-                SMOOTHED_AGN_UV[i_smoothed_heating] = (double)bh_uv * 1e10 / AGN_UV_UNIT * SOLAR_LUM / NU_1450 /
+                SMOOTHED_AGN_UV[i_smoothed_heating] = (double)bh_uv * 1e-11 * SOLAR_LUM / NU_1450 /
                                                   pixel_volume
                                                   * pow(units->UnitLength_in_cm, -3.0); // 1e21 erg/s/Hz/cm^3
               }
@@ -695,7 +695,7 @@ void _ComputeTs(int snapshot)
                 ((float*)BHUVEmissivity_filtered)[i_padded] = fmaxf(((float*)BHUVEmissivity_filtered)[i_padded], 0.0);
 
                 bh_uv = ((float*)BHUVEmissivity_filtered)[i_padded];
-                SMOOTHED_AGN_UV[i_smoothed_heating] = (double)bh_uv * 1e10 / AGN_UV_UNIT * SOLAR_LUM / NU_1450 /
+                SMOOTHED_AGN_UV[i_smoothed_heating] = (double)bh_uv * 1e-11 * SOLAR_LUM / NU_1450 /
                                                   pixel_volume
                                                   * pow(units->UnitLength_in_cm, -3.0); // 1e21 erg/s/Hz/cm^3
               }
@@ -1169,7 +1169,7 @@ void _ComputeTs(int snapshot)
         LW_emissivity_III[R_ct] = sum_III / total_n_cells;
         // carry AGNLWEfficiency so 0 zeroes the AGN LW output, matching AGN_LW[] below
         LW_emissivity_AGN[R_ct] =
-          run_globals.params.physics.AGNLWEfficiency * sum_agn / total_n_cells * AGN_UV_UNIT;
+          run_globals.params.physics.AGNLWEfficiency * sum_agn / total_n_cells * 1e21;
       }
     }
 #endif
@@ -1202,11 +1202,11 @@ void _ComputeTs(int snapshot)
             SFR_III[R_ct] = SMOOTHED_SFR_III[i_smoothed_heating];
             AGN_LW[R_ct] = run_globals.params.Flag_IncludeLymanWerner
                              ? run_globals.params.physics.AGNLWEfficiency *
-                                 SMOOTHED_AGN_UV[i_smoothed_heating] * AGN_UV_UNIT
+                                 SMOOTHED_AGN_UV[i_smoothed_heating] * 1e21
                              : 0.0;
 #endif
             AGN_eps1450[R_ct] = run_globals.params.physics.Flag_IncludeAGNLyAlpha
-                                 ? SMOOTHED_AGN_UV[i_smoothed_heating] * AGN_UV_UNIT
+                                 ? SMOOTHED_AGN_UV[i_smoothed_heating] * 1e21
                                  : 0.0;
             xHII_call = x_e_box_prev[i_padded];
 
