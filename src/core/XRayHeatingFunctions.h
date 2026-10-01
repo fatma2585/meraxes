@@ -21,9 +21,7 @@
 #define Pop2_ion run_globals.params.physics.ReionNionPhotPerBary
 #define Pop3_ion run_globals.params.physics.ReionNionPhotPerBaryIII
 
-/* Rest wavelength (Angstrom) of the BLR emission line inside Lyman band 2. Lusso+15 Table 2
- * lists it as the blended 'Lyb + OIV' feature. Fixed by the blend identification, not a
- * tunable - only its equivalent width (AGNBandLineEW) is a parameter. */
+/* Blended Lyb+OIV line, Lusso+15 Table 2. Only its EW (AGNBandLineEW) is tunable. */
 #define AGN_BAND_LINE_LAMBDA (double)1029.7
 
 /* deriv[]/dansdz[] layout, shared by evolveInt() and _ComputeTs().
@@ -42,17 +40,6 @@
 #define DERIV_JA_AGN_UV     7
 #define DERIV_JA_AGN_XRAY   8
 #endif
-
-/* The AGN UV emissivity grid (BHUVEmissivity: allocation, construction, the FFT /
- * filter / inverse-FFT pipeline, then SMOOTHED_AGN_UV) feeds TWO channels, so it is
- * needed if either one is on. Gating it on Flag_IncludeSpinTemp instead is always
- * true wherever it is tested -- all of this code only runs under that flag -- so the
- * grid gets allocated, filled and transformed even when nothing reads it.
- * Used by both _ComputeTs() and the reionization grid bookkeeping; keep them in step. */
-static inline bool agn_uv_grid_needed(void)
-{
-  return run_globals.params.Flag_IncludeLymanWerner || run_globals.params.physics.Flag_IncludeAGNLyAlpha;
-}
 
 #define NSPEC_MAX (int)23
 // Row stride for LW_spectral_*: the Lyman loop reaches n_ct = NSPEC_MAX, so rows need NSPEC_MAX+1.

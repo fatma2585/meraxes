@@ -896,14 +896,10 @@ void _ComputeTs(int snapshot)
 
         nuprime = nu_n(n_ct) * (1 + zpp) / (1.0 + zp);
         sum_lyn[R_ct] += frecycle(n_ct) * spectral_emissivity(nuprime, 0, 2);
-        /* AGN UV continuum Lya pumping. Must sit BEFORE the LW floor clip below: Lya uses
-         * the whole Lyman series, so nuprime here has to stay unclipped. sum_lyn_AGN carries
-         * the 1/(h nu') factor, so it is photons per unit L_1450 per Hz. */
+        /* Must precede the LW floor clip: nuprime has to stay unclipped. */
         if (run_globals.params.physics.Flag_IncludeAGNLyAlpha) {
           nu_emit = nuprime * NU_LA;
-          /* Band-2 BLR line: only lines blueward of Lya in a band with f_rec > 0 reach lower-z
-           * gas. Lya 1216A is at resonance (handled as a separate local term in evolveInt);
-           * NV 1240A is redward; f_rec(3)=0 kills CIII 977A. So band 2 only. */
+          /* Band 2 only: f_rec(3)=0, and Lya itself is a local term in evolveInt. */
           sum_lyn_AGN[R_ct] += ((n_ct == 2) ? lya_band_boost : 1.0) * frecycle(n_ct) *
                                pow(nu_emit / NU_1450, -run_globals.params.physics.SpecIndexUVAGNSoft) /
                                (PLANCK * nu_emit);

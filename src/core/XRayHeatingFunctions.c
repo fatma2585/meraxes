@@ -1340,9 +1340,7 @@ void evolveInt(float zp,
   double zpp, dzpp;
   double Conversion_factor =
     (SPEED_OF_LIGHT / (4. * M_PI)) / (PROTONMASS / SOLAR_MASS); // I am using this many times so it's worth save this
-  /* Shared by BOTH AGN direct-UV channels -- Lya (duvlya_dt_AGN) and Lyman-Werner
-   * (duvlyLW_dt_AGN) -- so it is named for the UV continuum they share, not for one
-   * of the two bands. */
+  /* Shared by the AGN Lya and Lyman-Werner channels. */
   double Conversion_factor_AGN_UV = SPEED_OF_LIGHT / (4.0 * M_PI);
 
   int zpp_ct;
@@ -1353,9 +1351,7 @@ void evolveInt(float zp,
   double dxlya_dt_III, dstarlya_dt_III, dstarlyLW_dt_III, dxheat_dt_III, dxion_source_dt_III, zpp_integrand_III;
   double dspec_dzp_II, dxheat_dzp_II;
 #endif
-  /* Prefix marks HOW the Lya was produced, suffix marks WHO produced it:
-   *   dx...   X-ray excitation      dstar... stellar UV      duv... AGN UV continuum
-   * so the AGN direct-UV terms are duv*, not dstar* -- they have nothing to do with stars. */
+  /* dx = X-ray excitation, dstar = stellar UV, duv = AGN UV continuum. */
   double duvlya_dt_AGN;
 
   double dxheat_dt_AGN_soft      = 0.0;
@@ -1445,8 +1441,7 @@ void evolveInt(float zp,
       }
 #endif
 
-      // Direct AGN UV continuum Lya pumping. Same structure as the stellar term, but the
-      // source is a UV emissivity rather than an SFR, so sum_lyn_AGN already carries 1/(h nu).
+      // AGN UV continuum Lya pumping; sum_lyn_AGN already carries 1/(h nu).
       if (run_globals.params.physics.Flag_IncludeAGNLyAlpha)
         duvlya_dt_AGN += AGN_eps1450[zpp_ct] * pow(1 + zp, 2) * (1 + zpp) * sum_lyn_AGN[zpp_ct] * dt_dzpp * dzpp;
 
@@ -1497,9 +1492,8 @@ void evolveInt(float zp,
     }
 #endif
 
-    /* AGN broad Lya emission line: emitted AT resonance, so absorbed at the source.
-     * The shell integral collapses to one local term at zpp == zp (delta function in
-     * emitted frequency), giving eps_1450(zp) * (1+zp)^4 * N_line * |dt/dz| / nu_alpha. */
+    /* AGN broad Lya line: emitted at resonance, so the shell integral collapses
+     * to one local term at zpp == zp. */
     if (run_globals.params.physics.Flag_IncludeAGNLyAlpha &&
         run_globals.params.physics.Flag_IncludeAGNLyaLine) {
       lya_line_ew_cm = run_globals.params.physics.AGNLyaLineEW * 1e-8; /* Angstrom -> cm */
@@ -1607,8 +1601,7 @@ void evolveInt(float zp,
   if (run_globals.params.physics.Flag_IncludeAGNLyAlpha)
     deriv[2] += duvlya_dt_AGN;
 
-  /* Same two diagnostics as the mini-halo branch. The AGN direct-UV channel is compiled
-   * into this build too, so DERIV_JA_AGN_UV carries a real value rather than zero. */
+  /* Same two diagnostics as the mini-halo branch. */
   deriv[DERIV_JA_AGN_UV] = run_globals.params.physics.Flag_IncludeAGNLyAlpha ? duvlya_dt_AGN : 0.0;
   deriv[DERIV_JA_AGN_XRAY] = dxlya_dt_AGN_soft + dxlya_dt_AGN_hard;
 #endif
