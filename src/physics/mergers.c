@@ -200,7 +200,7 @@ void merge_with_target(galaxy_t* gal, int* dead_gals, int snapshot)
   parent->MetalsEjectedGas += gal->MetalsEjectedGas;
   parent->LOIII += gal->LOIII;
   parent->ionization_param += gal->ionization_param;
-  
+
   // parent has not prior accretion but sallite does
   if (parent->BHAccretionOnTime < 0 && gal->BHAccretionOnTime > 0)
     parent->BHAccretionOnTime = gal->BHAccretionOnTime;
@@ -222,11 +222,10 @@ void merge_with_target(galaxy_t* gal, int* dead_gals, int snapshot)
   parent->BlackHoleMass += gal->BlackHoleMass;
   parent->EffectiveBHM += gal->EffectiveBHM;
   parent->EffectiveBHAR += gal->EffectiveBHAR;
-  
+
   parent->mwmsa_num += gal->mwmsa_num;
   parent->mwmsa_denom += gal->mwmsa_denom;
   parent->MergerBurstMass += gal->MergerBurstMass;
-
 
 #if USE_MINI_HALOS
   // If I have a Merger between Pop III and Pop II the result is a Pop. II. Actually I should compute metallicity
